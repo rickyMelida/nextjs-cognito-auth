@@ -48,7 +48,7 @@ export async function GET() {
       secretHash,
       clientSecretLength: config.clientSecret.length,
       environmentVariables: {
-        AWS_USER_POOL_CLIENT_SECRET: !!process.env.AWS_USER_POOL_CLIENT_SECRET,
+        NEXT_PUBLIC_AWS_USER_POOL_CLIENT_SECRET: !!process.env.NEXT_PUBLIC_AWS_USER_POOL_CLIENT_SECRET,
         NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID: !!process.env.NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID,
       }
     });
