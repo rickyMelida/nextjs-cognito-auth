@@ -4,6 +4,7 @@ build:
   commands:
     build:
       - npm ci --production
+      - npm install --no-save typescript @types/react @types/node
       - npm run build
 run: 
   command: npm start
@@ -12,3 +13,5 @@ run:
   env:
     - name: NODE_ENV
       value: production
+    - name: NEXT_TELEMETRY_DISABLED
+      value: "1"
