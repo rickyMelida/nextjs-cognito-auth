@@ -24,16 +24,11 @@ ENV AWS_DISABLE_SSL_VERIFICATION=$AWS_DISABLE_SSL_VERIFICATION
 COPY package*.json ./
 RUN npm ci
 
-# Copiar archivos de configuración críticos
-COPY tsconfig.json ./
-COPY next.config.js ./
-COPY postcss.config.mjs ./
-COPY eslint.config.mjs ./
-COPY next-env.d.ts ./
+# Copiar todos los archivos necesarios para el build
+COPY . .
 
-# Copiar el código fuente
-COPY src/ ./src/
-COPY public/ ./public/
+# Limpiar archivos innecesarios que puedan haber sido copiados
+RUN rm -rf node_modules/.cache || true
 
 # Next.js necesita las variables en build time
 RUN npm run build
