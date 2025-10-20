@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AuthService, SignInParams, SignUpParams, ConfirmSignUpParams } from '@/services/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { cognitoConfig } from '@/lib/cognito';
 
 export function useSignIn() {
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +13,8 @@ export function useSignIn() {
   const signIn = async (params: SignInParams) => {
     setIsLoading(true);
     setError(null);
+
+    console.log({cognitoConfig});
 
     try {
       const result = await AuthService.signIn(params);

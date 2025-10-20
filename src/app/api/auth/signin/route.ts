@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
 
+    console.log({cognitoConfig});
+    
+
     if (!username || !password) {
       return NextResponse.json(
         { error: 'Username y password son requeridos' },
