@@ -33,9 +33,22 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           IMAGE_TAG: latest
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      - name: Image pushed successfully
-        run: echo "✅ Image pushed to ECR successfully"
+          NEXT_TELEMETRY_DISABLED: ${{ secrets.NEXT_TELEMETRY_DISABLED }}
+          NEXT_PUBLIC_AWS_REGION: ${{ secrets.NEXT_PUBLIC_AWS_REGION }}
+          NEXT_PUBLIC_AWS_USER_POOL_ID: ${{ secrets.NEXT_PUBLIC_AWS_USER_POOL_ID }}
+          NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID }}
+          AWS_USER_POOL_CLIENT_SECRET: ${{ secrets.AWS_USER_POOL_CLIENT_SECRET }}
+          NODE_ENV: production
+          AWS_DISABLE_SSL_VERIFICATION: true
+        run: |
+          docker build \
+            --build-arg NEXT_TELEMETRY_DISABLED=$NEXT_TELEMETRY_DISABLED \
+            --build-arg NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION \
+            --build-arg NEXT_PUBLIC_AWS_USER_POOL_ID=$NEXT_PUBLIC_AWS_USER_POOL_ID \
+            --build-arg NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID \
+            --build-arg AWS_USER_POOL_CLIENT_SECRET=$AWS_USER_POOL_CLIENT_SECRET \
+            --build-arg NODE_ENV=$NODE_ENV \
+            --build-arg AWS_DISABLE_SSL_VERIFICATION=$AWS_DISABLE_SSL_VERIFICATION \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
