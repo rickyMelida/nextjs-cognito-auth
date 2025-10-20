@@ -1,3 +1,11 @@
+# Etapa de dependencias
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY package.json package-lock.json ./
+RUN npm install --omit=dev
+
 # Etapa de build
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -20,42 +28,48 @@ ENV AWS_USER_POOL_CLIENT_SECRET=$AWS_USER_POOL_CLIENT_SECRET
 ENV NODE_ENV=$NODE_ENV
 ENV AWS_DISABLE_SSL_VERIFICATION=$AWS_DISABLE_SSL_VERIFICATION
 
-# Copiar package.json y package-lock.json primero (para optimizar cache de Docker)
-COPY package*.json ./
-RUN npm ci
-
-# Copiar todos los archivos necesarios para el build
+# Copiar node_modules desde la etapa de dependencias
+COPY --from=deps /app/node_modules ./node_modules
+# Copiar todos los archivos del proyecto
 COPY . .
 
-# Limpiar archivos innecesarios que puedan haber sido copiados
-RUN rm -rf node_modules/.cache || true
+# Next.js collects anonymous telemetry data about general usage, which we opt out from
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Next.js necesita las variables en build time
+# Build de la aplicación
 RUN npm run build
 
 # Etapa de producción
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+# Install PM2 to manage node processes
+RUN npm install pm2 --location=global
 
 # Crear usuario no-root por seguridad
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup -g 1001 -S nodejs
+RUN adduser -S nextjs -u 1001
 
-# Copiar archivos necesarios desde la etapa de build
-COPY --from=builder /app/public ./public
+# Disable telemetry during runtime
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copiar los archivos compilados
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy configuration files and public assets
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
+
+# TODO: Standalone output is not including packages used by custom server.js
+COPY --from=builder /app/node_modules ./node_modules
 
 USER nextjs
 
 EXPOSE 3000
 
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+CMD ["npm", "run", "start"]
