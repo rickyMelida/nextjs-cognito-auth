@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copiar archivos de dependencias
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev
+RUN npm ci
 
 # Etapa de build
 FROM node:20-alpine AS builder
