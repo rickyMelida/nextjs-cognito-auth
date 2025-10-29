@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AuthService, SignInParams, SignUpParams, ConfirmSignUpParams } from '@/services/auth';
+import { AuthService, SignInParams, SignUpParams, AdminSignUpParams, ConfirmSignUpParams } from '@/services/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { cognitoConfig } from '@/lib/cognito';
 
@@ -192,4 +192,32 @@ export function useForgotPassword() {
   };
 
   return { forgotPassword, confirmForgotPassword, isLoading, error };
+}
+
+export function useAdminSignUp() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const adminSignUp = async (params: AdminSignUpParams) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await AuthService.adminSignUp(params);
+      
+      if (!result.success) {
+        setError(result.error || 'Error en el registro administrativo');
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { adminSignUp, isLoading, error };
 }

@@ -15,8 +15,23 @@ if (shouldDisableSSL) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
-export const cognitoClient = new CognitoIdentityProviderClient({
-  region: cognitoConfig.region,
-});
+// Configuración del cliente de Cognito con manejo de credenciales
+const createCognitoClient = () => {
+  const config: any = {
+    region: cognitoConfig.region,
+  };
+
+  // Agregar credenciales si están disponibles (para operaciones administrativas)
+  if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+    config.credentials = {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    };
+  }
+
+  return new CognitoIdentityProviderClient(config);
+};
+
+export const cognitoClient = createCognitoClient();
 
 export default cognitoClient;

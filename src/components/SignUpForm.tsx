@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSignUp, useConfirmSignUp } from '@/hooks/useAuth';
+import { useGroups } from '@/hooks/useGroups';
 
 export default function SignUpForm() {
   const [step, setStep] = useState<'signup' | 'confirm'>('signup');
@@ -11,6 +12,8 @@ export default function SignUpForm() {
     email: '',
     password: '',
     confirmPassword: '',
+    birthdate: '1990-01-01', // Valor por defecto
+    selectedGroup: '', // Nuevo campo para el grupo seleccionado
   });
   const [confirmationCode, setConfirmationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +21,7 @@ export default function SignUpForm() {
 
   const { signUp, isLoading: signUpLoading, error: signUpError } = useSignUp();
   const { confirmSignUp, isLoading: confirmLoading, error: confirmError } = useConfirmSignUp();
+  const { groups, isLoading: groupsLoading, addUserToGroup } = useGroups();
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -32,6 +36,7 @@ export default function SignUpForm() {
       username: formData.username,
       email: formData.email,
       password: formData.password,
+      birthdate: formData.birthdate,
     });
 
     if (result.success) {
@@ -48,7 +53,21 @@ export default function SignUpForm() {
     });
 
     if (result.success) {
-      router.push('/login?message=Account confirmed successfully');
+      // Si se seleccionó un grupo, asignar el usuario al grupo
+      if (formData.selectedGroup) {
+        try {
+          const groupResult = await addUserToGroup(formData.username, formData.selectedGroup);
+          if (groupResult.success) {
+            router.push('/login?message=Account confirmed successfully and assigned to group');
+          } else {
+            router.push('/login?message=Account confirmed but group assignment failed');
+          }
+        } catch (error) {
+          router.push('/login?message=Account confirmed but group assignment failed');
+        }
+      } else {
+        router.push('/login?message=Account confirmed successfully');
+      }
     }
   };
 
@@ -102,6 +121,61 @@ export default function SignUpForm() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
+              </div>
+
+              <div>
+                <label htmlFor="birthdate" className="block text-sm font-medium text-gray-700">
+                  Fecha de Nacimiento
+                </label>
+                <input
+                  id="birthdate"
+                  name="birthdate"
+                  type="date"
+                  required
+                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  value={formData.birthdate}
+                  onChange={(e) => setFormData({ ...formData, birthdate: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="selectedGroup" className="block text-sm font-medium text-gray-700">
+                  Grupo (Opcional)
+                </label>
+                {groupsLoading ? (
+                  <div className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50">
+                    <span className="text-gray-500">Cargando grupos...</span>
+                  </div>
+                ) : (
+                  <select
+                    id="selectedGroup"
+                    name="selectedGroup"
+                    className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    value={formData.selectedGroup}
+                    onChange={(e) => setFormData({ ...formData, selectedGroup: e.target.value })}
+                  >
+                    <option value="">Seleccionar grupo (opcional)</option>
+                    {groups.map((group) => (
+                      <option key={group.groupName} value={group.groupName}>
+                        {group.groupName}
+                        {group.description && ` - ${group.description}`}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {!groupsLoading && groups.length === 0 && (
+                  <div className="mt-1 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-sm text-yellow-700">
+                      ⚠️ No hay grupos disponibles en este momento.
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-1">
+                      Podrás ser asignado a un grupo más tarde por un administrador.
+                    </p>
+                  </div>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Puedes asignar tu usuario a un grupo para obtener permisos específicos
+                </p>
               </div>
 
               <div className="relative">
@@ -161,6 +235,19 @@ export default function SignUpForm() {
               </div>
             )}
 
+            {formData.selectedGroup && (
+              <div className="rounded-md bg-blue-50 p-4">
+                <div className="text-sm text-blue-700">
+                  <span className="font-medium">Grupo seleccionado:</span> {formData.selectedGroup}
+                  {groups.find(g => g.groupName === formData.selectedGroup)?.description && (
+                    <span className="block text-xs mt-1">
+                      {groups.find(g => g.groupName === formData.selectedGroup)?.description}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div>
               <button
                 type="submit"
@@ -176,6 +263,15 @@ export default function SignUpForm() {
                 ¿Ya tienes cuenta?{' '}
                 <a href="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
                   Inicia sesión aquí
+                </a>
+              </span>
+            </div>
+
+            <div className="text-center border-t pt-4">
+              <span className="text-xs text-gray-500">
+                ¿Eres administrador?{' '}
+                <a href="/admin-signup" className="font-medium text-purple-600 hover:text-purple-500">
+                  Crear usuario interno sin confirmación de email
                 </a>
               </span>
             </div>
@@ -201,6 +297,22 @@ export default function SignUpForm() {
             {error && (
               <div className="rounded-md bg-red-50 p-4">
                 <div className="text-sm text-red-700">{error}</div>
+              </div>
+            )}
+
+            {formData.selectedGroup && (
+              <div className="rounded-md bg-green-50 p-4">
+                <div className="text-sm text-green-700">
+                  <span className="font-medium">🎯 Grupo asignado:</span> {formData.selectedGroup}
+                  {groups.find(g => g.groupName === formData.selectedGroup)?.description && (
+                    <span className="block text-xs mt-1">
+                      {groups.find(g => g.groupName === formData.selectedGroup)?.description}
+                    </span>
+                  )}
+                  <span className="block text-xs mt-1 text-green-600">
+                    Después de la confirmación serás asignado automáticamente a este grupo.
+                  </span>
+                </div>
               </div>
             )}
 

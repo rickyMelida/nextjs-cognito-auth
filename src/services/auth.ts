@@ -12,6 +12,16 @@ export interface SignUpParams {
   username: string;
   password: string;
   email: string;
+  birthdate: string;
+}
+
+export interface AdminSignUpParams {
+  username: string;
+  email: string;
+  password?: string;
+  birthdate?: string;
+  groupName?: string;
+  temporaryPassword?: boolean;
 }
 
 export interface SignInParams {
@@ -42,14 +52,14 @@ export interface ConfirmForgotPasswordParams {
 
 export class AuthService {
   // Registro de usuario
-  static async signUp({ username, password, email }: SignUpParams) {
+  static async signUp({ username, password, email, birthdate }: SignUpParams) {
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password, email }),
+        body: JSON.stringify({ username, password, email, birthdate }),
       });
 
       const data = await response.json();
@@ -365,6 +375,142 @@ export class AuthService {
       };
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error al obtener grupos del usuario';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  // Listar todos los grupos disponibles
+  static async listAllGroups() {
+    try {
+      const response = await fetch('/api/auth/list-groups', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || 'Error al listar grupos',
+        };
+      }
+
+      return {
+        success: true,
+        groups: data.groups,
+        totalGroups: data.totalGroups,
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al listar grupos';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  // Agregar usuario a un grupo
+  static async addUserToGroup(username: string, groupName: string) {
+    try {
+      const response = await fetch('/api/auth/add-user-to-group', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, groupName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || 'Error al agregar usuario al grupo',
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message,
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error al agregar usuario al grupo';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  // Registro administrativo (sin confirmación de email)
+  static async adminSignUp(params: AdminSignUpParams) {
+    try {
+      const response = await fetch('/api/auth/admin-signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || 'Error en el registro administrativo',
+        };
+      }
+
+      return {
+        success: true,
+        userSub: data.userSub,
+        isConfirmed: data.isConfirmed,
+        message: data.message,
+        groupAssigned: data.groupAssigned,
+        passwordInfo: data.passwordInfo, // Nueva información de contraseña
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error en el registro administrativo';
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  // Confirmación administrativa (sin código)
+  static async adminConfirm(username: string) {
+    try {
+      const response = await fetch('/api/auth/admin-confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: data.error || 'Error en la confirmación administrativa',
+        };
+      }
+
+      return {
+        success: true,
+        message: data.message,
+      };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error en la confirmación administrativa';
       return {
         success: false,
         error: errorMessage,

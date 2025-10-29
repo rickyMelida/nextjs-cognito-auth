@@ -47,6 +47,12 @@ export default function DashboardPage() {
               <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <a
+                href="/groups"
+                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+              >
+                Gestionar Grupos
+              </a>
               <span className="text-gray-700">Hola, {user?.username}</span>
               <button
                 onClick={handleLogout}
@@ -103,6 +109,46 @@ export default function DashboardPage() {
                       <span className="font-medium">Es Usuario:</span> {isUser ? '✅ Sí' : '❌ No'}
                     </p>
                   </div>
+                </div>
+              </div>
+
+              {/* Acciones Rápidas */}
+              <div className="mt-6 bg-indigo-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-indigo-900 mb-4">
+                  Acciones Rápidas
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <a
+                    href="/groups"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded-lg text-center block transition-colors"
+                  >
+                    <div className="text-sm font-medium">🏷️ Gestionar Grupos</div>
+                    <div className="text-xs opacity-90 mt-1">Ver y asignar grupos de Cognito</div>
+                  </a>
+                  
+                  <a
+                    href="/admin-signup"
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg text-center block transition-colors"
+                  >
+                    <div className="text-sm font-medium">👥 Usuario Interno</div>
+                    <div className="text-xs opacity-90 mt-1">Crear sin confirmación de email</div>
+                  </a>
+                  
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg text-center transition-colors"
+                  >
+                    <div className="text-sm font-medium">🔄 Actualizar Datos</div>
+                    <div className="text-xs opacity-90 mt-1">Refrescar información del usuario</div>
+                  </button>
+                  
+                  <a
+                    href="/set-new-password"
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg text-center block transition-colors"
+                  >
+                    <div className="text-sm font-medium">🔑 Cambiar Contraseña</div>
+                    <div className="text-xs opacity-90 mt-1">Actualizar tu contraseña</div>
+                  </a>
                 </div>
               </div>
 

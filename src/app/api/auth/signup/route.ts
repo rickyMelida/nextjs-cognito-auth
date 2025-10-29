@@ -15,7 +15,7 @@ function generateSecretHash(username: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password, email } = await request.json();
+    const { username, password, email, birthdate } = await request.json();
 
     if (!username || !password || !email) {
       return NextResponse.json(
@@ -35,6 +35,10 @@ export async function POST(request: NextRequest) {
         {
           Name: 'email',
           Value: email,
+        },
+        {
+          Name: 'birthdate',
+          Value: birthdate || '1990-01-01', // Valor por defecto si no se proporciona
         },
       ],
     });
