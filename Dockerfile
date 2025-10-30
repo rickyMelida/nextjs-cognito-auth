@@ -11,7 +11,6 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Recibir las variables como argumentos de build
-ARG NEXT_TELEMETRY_DISABLED
 ARG NEXT_PUBLIC_AWS_REGION
 ARG NEXT_PUBLIC_AWS_USER_POOL_ID
 ARG NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID
@@ -20,7 +19,6 @@ ARG NODE_ENV
 ARG AWS_DISABLE_SSL_VERIFICATION
 
 # Exportarlas como variables de entorno (para que Next.js las lea)
-ENV NEXT_TELEMETRY_DISABLED=$NEXT_TELEMETRY_DISABLED
 ENV NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION
 ENV NEXT_PUBLIC_AWS_USER_POOL_ID=$NEXT_PUBLIC_AWS_USER_POOL_ID
 ENV NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID
@@ -32,9 +30,6 @@ ENV AWS_DISABLE_SSL_VERIFICATION=$AWS_DISABLE_SSL_VERIFICATION
 COPY --from=deps /app/node_modules ./node_modules
 # Copiar todos los archivos del proyecto
 COPY . .
-
-# Next.js collects anonymous telemetry data about general usage, which we opt out from
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build de la aplicación
 RUN npm run build
@@ -49,9 +44,6 @@ RUN npm install pm2 --location=global
 # Crear usuario no-root por seguridad
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
-
-# Disable telemetry during runtime
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing

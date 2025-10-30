@@ -31,6 +31,12 @@ jobs:
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
         env:
+          NEXT_PUBLIC_AWS_REGION: ${{ env.AWS_REGION }}
+          NEXT_PUBLIC_AWS_USER_POOL_ID: ${{ secrets.NEXT_PUBLIC_AWS_USER_POOL_ID }}
+          NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_AWS_USER_POOL_CLIENT_ID }}
+          NEXT_PUBLIC_AWS_USER_POOL_CLIENT_SECRET: ${{ secrets.NEXT_PUBLIC_AWS_USER_POOL_CLIENT_SECRET }}
+          NODE_ENV: production
+          AWS_DISABLE_SSL_VERIFICATION: true
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
