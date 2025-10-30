@@ -72,6 +72,7 @@ export default function SignUpForm() {
   };
 
   const isLoading = signUpLoading || confirmLoading;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const error = signUpError || confirmError;
 
   return (

@@ -19,6 +19,7 @@ export default function AdminSignUpForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [createdUserInfo, setCreatedUserInfo] = useState<any>(null);
 
   const { adminSignUp, isLoading: signUpLoading, error: signUpError } = useAdminSignUp();
